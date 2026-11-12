@@ -16,15 +16,18 @@ A responsive flight seat and passenger management interface built with React and
 
 Mock seat prices are ₹1,000 for standard seats, ₹2,500 for premium seats, and ₹3,500 for extra legroom seats. Optional meals can be free or paid, and their charges are added to the booking total.
 
-## State management
+## State management and seat assignment
 
-Zustand stores the selected passenger count, active passenger, chosen cabin layout, seat assignments, and meal selections. A seat can appear in only one passenger assignment; occupied seats are disabled. Changing the active passenger keeps all other assignments intact, and changing cabin layouts removes assignments whose seat labels are not present in the new layout. The displayed total is derived from the current seat and meal selections, so it updates immediately after each change.
+Zustand keeps the passenger count, active passenger, cabin layout, seat assignments, and meal selections in one booking store. Assignments are keyed by passenger index. Switching passengers changes only the active index, so each traveler’s existing seat and meal remain selected.
+
+When a traveler selects an available seat, the app checks that it is not occupied or assigned to another traveler before saving it. Each passenger has at most one seat; choosing a different seat replaces their previous one, and the remove-seat action clears it. Reducing the passenger count removes assignments for passengers who are no longer in the booking. Changing layouts clears assignments for seat labels that do not exist in the new cabin.
+
+Seat and meal charges are calculated from the current selections and summed for the price summary. The totals update immediately when a seat or meal is selected, changed, or removed.
 
 ## Technology stack
 
 - React 19 and TypeScript
 - Bun 1.4 or newer for package management, development, typechecking, and builds
-- React Router 7
 - Zustand 5
 - Lucide React icons
 - Tailwind CSS 4 (through the existing Bun Tailwind plugin)
