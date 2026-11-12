@@ -23,7 +23,7 @@ button:focus-visible, select:focus-visible, a:focus-visible { outline: 3px solid
 .crumb-sep { color: var(--soft); }
 .flight-card, .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 15px; box-shadow: var(--shadow); }
 .flight-card { display: grid; grid-template-columns: minmax(280px, .9fr) minmax(0, 1.3fr); align-items: center; gap: 28px; padding: 23px 28px; margin-bottom: 34px; }
-.flight-main { display: flex; align-items: center; gap: 17px; padding-left: 18px; }
+.flight-main { display: flex; align-items: center; justify-self: center; gap: 17px; }
 .airline-icon { width: 48px; height: 48px; background: var(--accent-pale); color: var(--accent); border-radius: 13px; display: grid; place-items: center; }
 .flight-label, .flight-meta span, .eyebrow { display: block; color: var(--soft); font-size: 10px; letter-spacing: 1.25px; font-weight: 750; }
 .flight-label span { padding: 0 4px; }
