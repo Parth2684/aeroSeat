@@ -146,7 +146,7 @@ export function App() {
           />
         </div>
         <footer className="page-footer">
-          © 2024 Wayfare Airways <span>·</span> Seat selection
+          © 2026 AeroSeat Airways <span>·</span> Seat selection
         </footer>
       </main>
     </div>
