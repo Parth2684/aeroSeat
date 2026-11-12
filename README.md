@@ -5,7 +5,7 @@ A responsive flight seat and passenger management interface built with React and
 ## Features
 
 - Interactive seat maps for 3–2 and 2–3–2 cabin layouts, with row numbers, seat letters, and aisle gaps
-- Seat states for included standard, paid extra legroom and premium, selected, and occupied seats
+- Seat states for standard, extra legroom, premium, selected, and occupied seats, with the price printed on each available seat
 - Passenger count selection, traveler tabs, and persistent per-passenger assignments while switching between travelers
 - Seat conflict prevention, assignment removal, and automatic clearing of incompatible seats after a layout change
 - Optional per-passenger meal selection, including included and paid meals
@@ -14,7 +14,7 @@ A responsive flight seat and passenger management interface built with React and
 - Responsive layout for desktop, tablet, and mobile screens
 - Accessible labels and status feedback for key controls
 
-Standard seats are included in the ticket and therefore cost ₹0. Premium seats cost ₹250, and extra legroom seats cost ₹350. Optional meals can be included or paid, and their charges are added to the booking total.
+Mock seat prices are ₹1,000 for standard seats, ₹2,500 for premium seats, and ₹3,500 for extra legroom seats. Optional meals can be free or paid, and their charges are added to the booking total.
 
 ## State management
 
