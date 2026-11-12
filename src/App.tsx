@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { Check } from "lucide-react";
 import { BookingSummary } from "./components/booking/BookingSummary";
 import { FlightHeader } from "./components/booking/FlightHeader";
 import { SeatMapPanel } from "./components/booking/SeatMapPanel";
@@ -93,13 +92,8 @@ export function App() {
         </nav>
         <div className="step-heading">
           <div>
-            <span className="step-kicker">STEP 2 OF 3</span>
             <h1>Make this flight yours</h1>
             <p>Choose a seat and meal for each traveler. Your selections are saved as you go.</p>
-          </div>
-          <div className="step-track" aria-label="Step 2 of 3">
-            <span className="done"><Check size={15} /></span><i />
-            <span className="current">2</span><i /><span>3</span>
           </div>
         </div>
         <div className="content-grid">

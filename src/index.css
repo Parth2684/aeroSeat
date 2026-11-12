@@ -34,14 +34,8 @@ button:focus-visible, select:focus-visible, a:focus-visible { outline: 3px solid
 .flight-meta div { display: grid; gap: 7px; }
 .flight-meta strong { font-size: 13px; color: var(--ink); font-weight: 600; }
 .step-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-.step-kicker { font-size: 10px; font-weight: 800; letter-spacing: 1.3px; color: var(--accent); }
 .step-heading h1 { font-size: clamp(28px, 3vw, 36px); letter-spacing: -1px; line-height: 1.1; margin: 8px 0 8px; font-weight: 700; color: var(--ink); }
 .step-heading p, .panel-heading p { font-size: 14px; color: var(--muted); margin: 0; }
-.step-track { display: flex; align-items: center; gap: 10px; margin-right: 2px; }
-.step-track span { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--border-soft); color: var(--muted); font-size: 13px; font-weight: 700; }
-.step-track .done { background: var(--accent-pale); color: var(--accent); }
-.step-track .current { background: var(--accent); color: white; }
-.step-track i { width: 34px; height: 1px; background: var(--border); }
 .count-select { position: relative; display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 13px; }
 .styled-select { position: relative; width: 100%; }
 .styled-select-trigger { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 42px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface); color: var(--ink); padding: 9px 12px; text-align: left; font-size: 13px; font-weight: 600; box-shadow: 0 1px 2px rgb(22 46 40 / 4%); transition: border-color .14s, box-shadow .14s, background .14s; }
