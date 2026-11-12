@@ -1,5 +1,4 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { create } from "zustand";
 import {
   Armchair,
   ArrowRight,
@@ -12,9 +11,9 @@ import {
   Utensils,
   X,
 } from "lucide-react";
+import { useBooking, type Layout } from "./stores/useStore";
 import "./index.css";
 
-type Layout = "3-2" | "2-3-2";
 type SeatKind = "standard" | "extra" | "premium";
 type Seat = {
   id: string;
@@ -26,71 +25,6 @@ type Seat = {
   column: number;
 };
 type Meal = { id: string; name: string; detail: string; price: number };
-type BookingState = {
-  count: number;
-  layout: Layout;
-  active: number;
-  assignments: Record<number, string>;
-  meals: Record<number, string>;
-  setCount: (count: number) => void;
-  setLayout: (layout: Layout) => void;
-  setActive: (active: number) => void;
-  assign: (seat: string) => void;
-  removeSeat: () => void;
-  setMeal: (meal: string) => void;
-};
-
-const useBooking = create<BookingState>((set, get) => ({
-  count: 2,
-  layout: "3-2",
-  active: 0,
-  assignments: {},
-  meals: {},
-  setCount: (count) =>
-    set((s) => ({
-      count,
-      active: Math.min(s.active, count - 1),
-      assignments: Object.fromEntries(
-        Object.entries(s.assignments).filter(([i]) => Number(i) < count),
-      ),
-      meals: Object.fromEntries(
-        Object.entries(s.meals).filter(([i]) => Number(i) < count),
-      ),
-    })),
-  setLayout: (layout) =>
-    set((s) => {
-      const letters =
-        layout === "3-2"
-          ? ["A", "B", "C", "D", "E"]
-          : ["A", "B", "D", "E", "F", "G", "H"];
-      return {
-        layout,
-        assignments: Object.fromEntries(
-          Object.entries(s.assignments).filter(([, seat]) =>
-            letters.includes(seat.slice(-1)),
-          ),
-        ),
-      };
-    }),
-  setActive: (active) => set({ active }),
-  assign: (seat) =>
-    set((s) => ({
-      assignments: {
-        ...Object.fromEntries(
-          Object.entries(s.assignments).filter(([, value]) => value !== seat),
-        ),
-        [s.active]: seat,
-      },
-    })),
-  removeSeat: () => {
-    const { active, assignments } = get();
-    const next = { ...assignments };
-    delete next[active];
-    set({ assignments: next });
-  },
-  setMeal: (meal) => set((s) => ({ meals: { ...s.meals, [s.active]: meal } })),
-}));
-
 const mealOptions: Meal[] = [
   { id: "none", name: "No meal", detail: "Skip meal selection", price: 0 },
   {

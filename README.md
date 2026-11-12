@@ -18,7 +18,7 @@ Mock seat prices are ₹1,000 for standard seats, ₹2,500 for premium seats, an
 
 ## State management and seat assignment
 
-Zustand keeps the passenger count, active passenger, cabin layout, seat assignments, and meal selections in one booking store. Assignments are keyed by passenger index. Switching passengers changes only the active index, so each traveler’s existing seat and meal remain selected.
+The Zustand store lives in [`src/stores/useStore.ts`](src/stores/useStore.ts). It keeps the passenger count, active passenger, cabin layout, seat assignments, and meal selections in one booking store. Assignments are keyed by passenger index. Switching passengers changes only the active index, so each traveler’s existing seat and meal remain selected.
 
 When a traveler selects an available seat, the app checks that it is not occupied or assigned to another traveler before saving it. Each passenger has at most one seat; choosing a different seat replaces their previous one, and the remove-seat action clears it. Reducing the passenger count removes assignments for passengers who are no longer in the booking. Changing layouts clears assignments for seat labels that do not exist in the new cabin.
 
