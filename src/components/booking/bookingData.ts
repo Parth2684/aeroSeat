@@ -22,9 +22,8 @@ export const mealOptions: Meal[] = [
 export const money = (price: number) => `₹${price.toLocaleString("en-IN")}`;
 
 export function createSeats(layout: Layout): Seat[] {
-  const letters = layout === "3-2"
-    ? ["A", "B", "C", "D", "E"]
-    : ["A", "B", "D", "E", "F", "G", "H"];
+  const letters =
+    layout === "3-2" ? ["A", "B", "C", "D", "E"] : ["A", "B", "D", "E", "F", "G", "H"];
   const occupied = new Set(["1A", "2E", "4B", "6D", "8A", "9H", "11C"]);
 
   return Array.from({ length: 12 }, (_, rowIndex) =>
@@ -48,9 +47,7 @@ export function createSeats(layout: Layout): Seat[] {
         column:
           index +
           1 +
-          (layout === "3-2"
-            ? index > 2 ? 1 : 0
-            : (index > 1 ? 1 : 0) + (index > 4 ? 1 : 0)),
+          (layout === "3-2" ? (index > 2 ? 1 : 0) : (index > 1 ? 1 : 0) + (index > 4 ? 1 : 0)),
       };
     }),
   ).flat();

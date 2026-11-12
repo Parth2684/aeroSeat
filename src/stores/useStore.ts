@@ -29,16 +29,12 @@ export const useBooking = create<BookingState>((set, get) => ({
       assignments: Object.fromEntries(
         Object.entries(state.assignments).filter(([id]) => Number(id) < count),
       ),
-      meals: Object.fromEntries(
-        Object.entries(state.meals).filter(([id]) => Number(id) < count),
-      ),
+      meals: Object.fromEntries(Object.entries(state.meals).filter(([id]) => Number(id) < count)),
     })),
   setLayout: (layout) =>
     set((state) => {
       const validLetters =
-        layout === "3-2"
-          ? ["A", "B", "C", "D", "E"]
-          : ["A", "B", "D", "E", "F", "G", "H"];
+        layout === "3-2" ? ["A", "B", "C", "D", "E"] : ["A", "B", "D", "E", "F", "G", "H"];
       return {
         layout,
         assignments: Object.fromEntries(
@@ -64,6 +60,5 @@ export const useBooking = create<BookingState>((set, get) => ({
     delete nextAssignments[active];
     set({ assignments: nextAssignments });
   },
-  setMeal: (meal) =>
-    set((state) => ({ meals: { ...state.meals, [state.active]: meal } })),
+  setMeal: (meal) => set((state) => ({ meals: { ...state.meals, [state.active]: meal } })),
 }));

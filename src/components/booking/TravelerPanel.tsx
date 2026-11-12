@@ -30,7 +30,9 @@ export function TravelerPanel({
         <div>
           <span className="eyebrow">PASSENGERS</span>
           <h2>Travelers</h2>
-          <p>{selectedCount} of {count} seats selected</p>
+          <p>
+            {selectedCount} of {count} seats selected
+          </p>
         </div>
         <div className="passenger-count">
           <span>Party size</span>
@@ -57,9 +59,7 @@ export function TravelerPanel({
             key={id}
             onClick={() => onSelectTraveler(id)}
           >
-            <span className="tab-number">
-              {assignments[id] ? <Check size={17} /> : id + 1}
-            </span>
+            <span className="tab-number">{assignments[id] ? <Check size={17} /> : id + 1}</span>
             <span className="traveler-tab-copy">
               <strong>Traveler {id + 1}</strong>
               <small>
@@ -76,7 +76,9 @@ export function TravelerPanel({
         <span className="hint-dot" />
         Selecting for <strong>Traveler {active + 1}</strong>
         {activeSeat && (
-          <span className="hint-seat">Seat {activeSeat.id} · {money(activeSeat.price)}</span>
+          <span className="hint-seat">
+            Seat {activeSeat.id} · {money(activeSeat.price)}
+          </span>
         )}
       </div>
     </section>

@@ -24,9 +24,7 @@ export function App() {
   } = useBooking();
   const [message, setMessage] = useState("");
   const [dark, setDark] = useState(
-    () =>
-      typeof localStorage !== "undefined" &&
-      localStorage.getItem("wayfare-theme") === "dark",
+    () => typeof localStorage !== "undefined" && localStorage.getItem("wayfare-theme") === "dark",
   );
 
   useEffect(() => {
@@ -34,10 +32,7 @@ export function App() {
   }, [dark]);
 
   const seats = useMemo(() => createSeats(layout), [layout]);
-  const seatById = useMemo(
-    () => new Map(seats.map((seat) => [seat.id, seat])),
-    [seats],
-  );
+  const seatById = useMemo(() => new Map(seats.map((seat) => [seat.id, seat])), [seats]);
   const activeSeat = seatById.get(assignments[active] ?? "");
   const occupiedCount = seats.filter((seat) => seat.occupied).length;
   const seatTotal = Object.values(assignments).reduce(
@@ -55,9 +50,7 @@ export function App() {
 
   function chooseSeat(seat: Seat) {
     if (seat.occupied) return;
-    const owner = Object.entries(assignments).find(
-      ([, assigned]) => assigned === seat.id,
-    );
+    const owner = Object.entries(assignments).find(([, assigned]) => assigned === seat.id);
     if (owner && Number(owner[0]) !== active) {
       setMessage(
         `${seat.id} is assigned to Traveler ${Number(owner[0]) + 1}. Choose another seat or switch to that traveler.`,
@@ -87,7 +80,8 @@ export function App() {
       <FlightHeader dark={dark} onToggleTheme={() => setDark((value) => !value)} />
       <main className="page-wrap">
         <nav className="breadcrumb" aria-label="Breadcrumb">
-          <span>Flights</span><span className="crumb-sep">/</span>
+          <span>Flights</span>
+          <span className="crumb-sep">/</span>
           <strong>Choose your seats</strong>
         </nav>
         <div className="step-heading">
