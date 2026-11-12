@@ -1,4 +1,4 @@
-# Wayfare Seat Selection
+# AeroSeat Seat Selection
 
 A responsive flight seat and passenger management interface built with React and Bun. Travelers can select passengers, choose seats from an interactive cabin map, add optional meals, and review an itemized total before continuing.
 
