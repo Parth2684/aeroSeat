@@ -1,16 +1,24 @@
 # Wayfare Seat Selection
 
-A responsive flight seat selection interface built with React and Bun. Travelers can choose seats from an interactive cabin map, assign a different seat to each passenger, compare seat fees, and review the total before continuing.
+A responsive flight seat and passenger management interface built with React and Bun. Travelers can select passengers, choose seats from an interactive cabin map, add optional meals, and review an itemized total before continuing.
 
 ## Features
 
-- Interactive seat maps for 3–2 and 2–3–2 cabin layouts
-- Clear seat states for standard, extra legroom, premium, selected, and occupied seats
-- Passenger count selection and per-passenger seat assignment
-- Seat conflict prevention, assignment clearing, and automatic removal of seats that do not exist after a layout change
-- Live seat fee summary in INR
+- Interactive seat maps for 3–2 and 2–3–2 cabin layouts, with row numbers, seat letters, and aisle gaps
+- Seat states for included standard, paid extra legroom and premium, selected, and occupied seats
+- Passenger count selection, traveler tabs, and persistent per-passenger assignments while switching between travelers
+- Seat conflict prevention, assignment removal, and automatic clearing of incompatible seats after a layout change
+- Optional per-passenger meal selection, including included and paid meals
+- Live itemized seat and meal price summary in INR
+- Persistent light and dark themes
 - Responsive layout for desktop, tablet, and mobile screens
 - Accessible labels and status feedback for key controls
+
+Standard seats are included in the ticket and therefore cost ₹0. Premium seats cost ₹250, and extra legroom seats cost ₹350. Optional meals can be included or paid, and their charges are added to the booking total.
+
+## State management
+
+Zustand stores the selected passenger count, active passenger, chosen cabin layout, seat assignments, and meal selections. A seat can appear in only one passenger assignment; occupied seats are disabled. Changing the active passenger keeps all other assignments intact, and changing cabin layouts removes assignments whose seat labels are not present in the new layout. The displayed total is derived from the current seat and meal selections, so it updates immediately after each change.
 
 ## Technology stack
 

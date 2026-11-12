@@ -1,66 +1,107 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { create } from "zustand";
 import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
-import { ArrowLeft, Armchair, Check, ChevronDown, Plane, X } from "lucide-react";
+import { Armchair, ArrowRight, Check, ChevronDown, CircleHelp, Moon, Plane, Sun, Utensils, X } from "lucide-react";
 import "./index.css";
 
-type Seat = { id: string; price: number; kind: "standard" | "extra" | "premium"; occupied?: boolean };
-type State = { count: number; layout: "3-2" | "2-3-2"; active: number; assignments: Record<number, string>; setCount: (n: number) => void; setLayout: (s: State["layout"]) => void; setActive: (n: number) => void; assign: (seat: string) => void; remove: () => void };
-const useBooking = create<State>((set, get) => ({
-  count: 2, layout: "3-2", active: 0, assignments: {},
-  setCount: (count) => set((s) => ({ count, active: Math.min(s.active, count - 1), assignments: Object.fromEntries(Object.entries(s.assignments).filter(([i]) => Number(i) < count)) })),
+type Layout = "3-2" | "2-3-2";
+type SeatKind = "standard" | "extra" | "premium";
+type Seat = { id: string; row: number; letter: string; price: number; kind: SeatKind; occupied: boolean; column: number };
+type Meal = { id: string; name: string; detail: string; price: number };
+type BookingState = {
+  count: number; layout: Layout; active: number; assignments: Record<number, string>; meals: Record<number, string>;
+  setCount: (count: number) => void; setLayout: (layout: Layout) => void; setActive: (active: number) => void;
+  assign: (seat: string) => void; removeSeat: () => void; setMeal: (meal: string) => void;
+};
+
+const useBooking = create<BookingState>((set, get) => ({
+  count: 2, layout: "3-2", active: 0, assignments: {}, meals: {},
+  setCount: (count) => set((s) => ({ count, active: Math.min(s.active, count - 1), assignments: Object.fromEntries(Object.entries(s.assignments).filter(([i]) => Number(i) < count)), meals: Object.fromEntries(Object.entries(s.meals).filter(([i]) => Number(i) < count)) })),
   setLayout: (layout) => set((s) => {
-    const letters = layout === "3-2" ? ["A", "B", "C", "D", "E"] : ["A", "B", "C", "D", "E", "F", "G"];
+    const letters = layout === "3-2" ? ["A", "B", "C", "D", "E"] : ["A", "B", "D", "E", "F", "G", "H"];
     return { layout, assignments: Object.fromEntries(Object.entries(s.assignments).filter(([, seat]) => letters.includes(seat.slice(-1)))) };
-  }), setActive: (active) => set({ active }),
+  }),
+  setActive: (active) => set({ active }),
   assign: (seat) => set((s) => ({ assignments: { ...Object.fromEntries(Object.entries(s.assignments).filter(([, value]) => value !== seat)), [s.active]: seat } })),
-  remove: () => { const { active, assignments } = get(); const next = { ...assignments }; delete next[active]; set({ assignments: next }); },
+  removeSeat: () => { const { active, assignments } = get(); const next = { ...assignments }; delete next[active]; set({ assignments: next }); },
+  setMeal: (meal) => set((s) => ({ meals: { ...s.meals, [s.active]: meal } })),
 }));
 
-const rows = 12;
-const makeSeats = (layout: State["layout"]): Seat[][] => Array.from({ length: rows }, (_, r) => {
-  const letters = layout === "3-2" ? ["A", "B", "C", "D", "E"] : ["A", "B", "C", "D", "E", "F", "G"];
-  return letters.map((letter, c) => {
-    const id = `${r + 1}${letter}`, premium = r < 2, extra = c === 0 || c === letters.length - 1 || (layout === "3-2" && c === 2);
-    return { id, kind: premium ? "premium" : extra ? "extra" : "standard", price: premium ? 250 : extra ? 350 : 0, occupied: ["1A", "2E", "4B", "6D", "8A", "9G", "11C"].includes(id) };
-  });
-});
-const money = (n: number) => n === 0 ? "Free" : `₹${n}`;
+const mealOptions: Meal[] = [
+  { id: "none", name: "No meal", detail: "Skip meal selection", price: 0 },
+  { id: "vegetarian", name: "Garden pasta", detail: "Vegetarian · served warm", price: 0 },
+  { id: "chicken", name: "Roast chicken", detail: "Chicken · seasonal sides", price: 450 },
+  { id: "vegan", name: "Vegan bowl", detail: "Plant based · gluten free", price: 300 },
+];
+const money = (price: number) => price === 0 ? "Included" : `₹${price.toLocaleString("en-IN")}`;
+
+function createSeats(layout: Layout): Seat[] {
+  const letters = layout === "3-2" ? ["A", "B", "C", "D", "E"] : ["A", "B", "D", "E", "F", "G", "H"];
+  const occupied = new Set(["1A", "2E", "4B", "6D", "8A", "9H", "11C"]);
+  return Array.from({ length: 12 }, (_, rowIndex) => letters.map((letter, i) => {
+    const row = rowIndex + 1;
+    const kind: SeatKind = row <= 2 && (i === 0 || i === letters.length - 1) ? "premium" : row === 7 ? "extra" : "standard";
+    const price = kind === "premium" ? 250 : kind === "extra" ? 350 : 0;
+    return { id: `${row}${letter}`, row, letter, kind, price, occupied: occupied.has(`${row}${letter}`), column: i + 1 + (layout === "3-2" ? (i > 2 ? 1 : 0) : (i > 1 ? 1 : 0) + (i > 4 ? 1 : 0)) };
+  })).flat();
+}
 
 export function App() {
   return <BrowserRouter><Routes><Route path="*" element={<BookingPage />} /></Routes></BrowserRouter>;
 }
 
 function BookingPage() {
-  const { count, layout, active, assignments, setCount, setLayout, setActive, assign, remove } = useBooking();
+  const { count, layout, active, assignments, meals, setCount, setLayout, setActive, assign, removeSeat, setMeal } = useBooking();
   const [message, setMessage] = useState("");
-  const seats = makeSeats(layout), selected = assignments[active], occupiedCount = seats.flat().filter((s) => s.occupied).length;
-  const selectedSeat = seats.flat().find((s) => s.id === selected);
-  const total = Object.values(assignments).reduce((sum, id) => sum + (seats.flat().find((s) => s.id === id)?.price ?? 0), 0);
-  const columns = layout === "3-2" ? "repeat(3, minmax(32px, 42px)) 28px repeat(2, minmax(32px, 42px))" : "repeat(2, minmax(32px, 42px)) 24px repeat(3, minmax(32px, 42px)) 24px repeat(2, minmax(32px, 42px))";
-  const gaps = layout === "3-2" ? ["3"] : ["2", "5"];
-  const passengers = Array.from({ length: count }, (_, i) => ({ id: i, name: `Passenger ${i + 1}` }));
-  function choose(seat: Seat) {
+  const [dark, setDark] = useState(() => typeof localStorage !== "undefined" && localStorage.getItem("wayfare-theme") === "dark");
+  useEffect(() => { localStorage.setItem("wayfare-theme", dark ? "dark" : "light"); }, [dark]);
+
+  const seats = useMemo(() => createSeats(layout), [layout]);
+  const seatById = useMemo(() => new Map(seats.map((seat) => [seat.id, seat])), [seats]);
+  const activeSeat = seatById.get(assignments[active] ?? "");
+  const occupiedCount = seats.filter((seat) => seat.occupied).length;
+  const seatTotal = Object.values(assignments).reduce((total, id) => total + (seatById.get(id)?.price ?? 0), 0);
+  const mealTotal = Object.values(meals).reduce((total, id) => total + (mealOptions.find((meal) => meal.id === id)?.price ?? 0), 0);
+  const total = seatTotal + mealTotal;
+  const passengers = Array.from({ length: count }, (_, id) => id);
+  const gridTemplate = layout === "3-2" ? "28px repeat(3, minmax(40px, 1fr)) 24px repeat(2, minmax(40px, 1fr))" : "28px repeat(2, minmax(38px, 1fr)) 22px repeat(3, minmax(38px, 1fr)) 22px repeat(2, minmax(38px, 1fr))";
+  const labels = layout === "3-2" ? ["A", "B", "C", "", "D", "E"] : ["A", "B", "", "D", "E", "F", "", "G", "H"];
+  const selectedCount = Object.keys(assignments).length;
+  const activeMeal = meals[active] ?? "none";
+
+  function chooseSeat(seat: Seat) {
     if (seat.occupied) return;
-    const owner = Object.entries(assignments).find(([, id]) => id === seat.id);
-    if (owner && Number(owner[0]) !== active) { setMessage(`${seat.id} is assigned to Passenger ${Number(owner[0]) + 1}.`); return; }
-    assign(seat.id); setMessage("");
+    const owner = Object.entries(assignments).find(([, assigned]) => assigned === seat.id);
+    if (owner && Number(owner[0]) !== active) {
+      setMessage(`${seat.id} is assigned to Traveler ${Number(owner[0]) + 1}. Choose another seat or switch to that traveler.`);
+      return;
+    }
+    assign(seat.id);
+    setMessage(`${seat.id} assigned to Traveler ${active + 1} · ${money(seat.price)}.`);
   }
-  return <div className="app-shell">
-    <header className="topbar"><Link to="/" className="brand"><span className="brand-mark"><Plane size={17} /></span> wayfare<span className="brand-dot">.</span></Link><div className="topbar-right"><span>Need help?</span><button className="avatar" aria-label="Account">JD</button></div></header>
+
+  return <div className={`app-shell ${dark ? "theme-dark" : ""}`}>
+    <header className="topbar"><Link to="/" className="brand"><span className="brand-mark"><Plane size={19} /></span><span>wayfare<span className="brand-dot">.</span></span></Link><div className="topbar-right"><span className="support-link"><CircleHelp size={17} /> Help center</span><button className="theme-toggle" onClick={() => setDark((value) => !value)} aria-label={`Switch to ${dark ? "light" : "dark"} mode`} title={`Switch to ${dark ? "light" : "dark"} mode`}>{dark ? <Sun size={18} /> : <Moon size={18} />}<span>{dark ? "Light" : "Dark"}</span></button><button className="avatar" aria-label="Account">JD</button></div></header>
     <main className="page-wrap">
-      <div className="breadcrumb"><button aria-label="Back"><ArrowLeft size={17} /></button><span>Flights</span><span className="crumb-sep">/</span><span>Choose your seats</span></div>
-      <section className="flight-card"><div className="flight-main"><div className="airline-icon"><Plane size={20} /></div><div><div className="flight-label">YOUR FLIGHT <span>·</span> WF 204</div><div className="route"><strong>New York</strong><span className="route-line"><i></i><Plane size={14} /><i></i></span><strong>London</strong></div></div></div><div className="flight-meta"><div><span>DEPARTURE</span><strong>Tue, 24 Sep · 8:45 PM</strong></div><div><span>FLIGHT TIME</span><strong>6h 55m · Nonstop</strong></div><div><span>AIRCRAFT</span><strong>Boeing 787-9</strong></div></div></section>
-      <div className="step-heading"><div><span className="step-kicker">STEP 2 OF 3</span><h1>Choose your seats</h1><p>Select a seat for each traveler. You can change your selection anytime.</p></div><div className="step-track" aria-label="Step 2 of 3"><span className="done"><Check size={13} /></span><i></i><span className="current">2</span><i></i><span>3</span></div></div>
+      <nav className="breadcrumb" aria-label="Breadcrumb"><span>Flights</span><span className="crumb-sep">/</span><strong>Choose your seats</strong></nav>
+      <section className="flight-card"><div className="flight-main"><div className="airline-icon"><Plane size={22} /></div><div><div className="flight-label">YOUR FLIGHT <span>·</span> WF 204</div><div className="route"><strong>New York</strong><span className="route-line"><i /><Plane size={16} /><i /></span><strong>London</strong></div></div></div><div className="flight-meta"><div><span>DEPARTURE</span><strong>Tue, 24 Sep · 8:45 PM</strong></div><div><span>FLIGHT TIME</span><strong>6h 55m · Nonstop</strong></div><div><span>AIRCRAFT</span><strong>Boeing 787-9</strong></div></div></section>
+      <div className="step-heading"><div><span className="step-kicker">STEP 2 OF 3</span><h1>Make this flight yours</h1><p>Choose a seat and meal for each traveler. Your selections are saved as you go.</p></div><div className="step-track" aria-label="Step 2 of 3"><span className="done"><Check size={15} /></span><i /><span className="current">2</span><i /><span>3</span></div></div>
+      <section className="traveler-strip panel"><div className="traveler-strip-label"><span className="eyebrow">TRAVELERS</span><strong>{selectedCount} of {count} seats selected</strong></div><label className="count-select"><span>Party size</span><select value={count} onChange={(event) => { setCount(Number(event.target.value)); setMessage(""); }} aria-label="Number of passengers">{[1, 2, 3, 4, 5, 6].map((number) => <option key={number} value={number}>{number} {number === 1 ? "traveler" : "travelers"}</option>)}</select><ChevronDown size={16} /></label><div className="traveler-tabs" role="tablist" aria-label="Choose traveler">{passengers.map((id) => <button role="tab" aria-selected={active === id} className={`traveler-tab ${active === id ? "is-active" : ""}`} key={id} onClick={() => { setActive(id); setMessage(""); }}><span className="tab-number">{assignments[id] ? <Check size={16} /> : id + 1}</span><span><strong>Traveler {id + 1}</strong><small>{assignments[id] ? `Seat ${assignments[id]}` : "Choose a seat"}</small></span>{active === id && <span className="tab-active-dot" />}</button>)}</div><div className="active-traveler-hint"><span className="hint-dot" />Selecting for <strong>Traveler {active + 1}</strong>{activeSeat && <span className="hint-seat">Seat {activeSeat.id}</span>}</div></section>
       <div className="content-grid">
-        <section className="seat-panel panel"><div className="panel-heading"><div><h2>Seat map</h2><p>{occupiedCount} seats occupied <span>·</span> {rows * (seats[0]?.length ?? 0) - occupiedCount} available</p></div><label className="layout-select"><select value={layout} onChange={(e) => { setLayout(e.target.value as State["layout"]); setMessage(""); }} aria-label="Seat layout"><option value="3-2">Economy · 3–2</option><option value="2-3-2">Widebody · 2–3–2</option></select><ChevronDown size={15} /></label></div>
-          <div className="seat-content"><div className="seat-legend"><span><i className="legend-box standard"></i>Standard <b>Free</b></span><span><i className="legend-box extra"></i>Extra legroom <b>₹350</b></span><span><i className="legend-box premium"></i>Premium <b>₹250</b></span><span><i className="legend-box taken"></i>Occupied</span></div>
-            <div className="plane-map"><div className="plane-nose"><span>FRONT</span></div><div className="column-labels" style={{ gridTemplateColumns: columns }}>{(layout === "3-2" ? ["A", "B", "C", "", "D", "E"] : ["A", "B", "", "C", "D", "E", "", "F", "G"]).map((x, i) => <span key={i}>{x}</span>)}</div><div className="rows">{seats.map((row, r) => <div className="seat-row" style={{ gridTemplateColumns: columns }} key={r}><span className="row-num">{r + 1}</span>{row.map((seat, c) => { const chosen = selected === seat.id || Object.values(assignments).includes(seat.id); const isActive = selected === seat.id; return <button key={seat.id} aria-label={`${seat.id}, ${seat.occupied ? "occupied" : money(seat.price)}`} title={`${seat.id} · ${seat.kind === "extra" ? "Extra legroom" : seat.kind === "premium" ? "Premium" : "Standard"} · ${money(seat.price)}`} className={`seat ${seat.kind} ${seat.occupied ? "occupied" : ""} ${chosen ? "chosen" : ""} ${isActive ? "active-seat" : ""}`} style={{ gridColumn: c + 1 + gaps.filter((n) => Number(n) <= c).length }} onClick={() => choose(seat)} disabled={seat.occupied}>{seat.occupied ? <X size={12} /> : chosen ? <Check size={12} /> : <Armchair size={14} />}</button>; })}</div>)}</div><div className="plane-tail"><span>BACK</span></div></div>
+        <section className="seat-panel panel"><div className="panel-heading"><div><span className="eyebrow">CABIN OVERVIEW</span><h2>Choose a seat</h2><p>{occupiedCount} occupied <span>·</span> {seats.length - occupiedCount} available</p></div><label className="layout-select"><span>Seat layout</span><select value={layout} onChange={(event) => { setLayout(event.target.value as Layout); setMessage("Seat layout updated. Any incompatible seat assignments were cleared."); }} aria-label="Aircraft seat layout"><option value="3-2">Narrowbody · 3–2</option><option value="2-3-2">Widebody · 2–3–2</option></select><ChevronDown size={16} /></label></div>
+          <div className="seat-content"><div className="seat-legend"><span><i className="legend-box standard" />Standard <b>Included</b></span><span><i className="legend-box extra" />Extra legroom <b>₹350</b></span><span><i className="legend-box premium" />Premium <b>₹250</b></span><span><i className="legend-box taken" />Occupied</span><span><i className="legend-box selected" />Your selection</span></div>
+            <div className="seat-map-scroll"><div className={`plane-map layout-${layout}`}><div className="plane-nose"><Plane size={19} /><span>FRONT OF AIRCRAFT</span></div><div className="column-labels" style={{ gridTemplateColumns: gridTemplate }}><span className="row-label-space" />{labels.map((letter, index) => <span key={`${letter}-${index}`} className={letter ? "" : "aisle-label"}>{letter}</span>)}</div><div className="rows">{Array.from({ length: 12 }, (_, rowIndex) => { const row = rowIndex + 1; return <div className="seat-row" style={{ gridTemplateColumns: gridTemplate }} key={row}><span className="row-num">{row}</span>{seats.filter((seat) => seat.row === row).map((seat) => {
+              const owner = Object.entries(assignments).find(([, assigned]) => assigned === seat.id)?.[0];
+              const isActive = assignments[active] === seat.id;
+              const isOtherPassenger = owner !== undefined && Number(owner) !== active;
+              return <button key={seat.id} aria-label={`${seat.id}, ${seat.occupied ? "occupied" : `${seat.kind === "extra" ? "extra legroom" : seat.kind} seat, ${money(seat.price)}`}${isOtherPassenger ? `, assigned to Traveler ${Number(owner) + 1}` : ""}`} title={seat.occupied ? `${seat.id} · Occupied` : `${seat.id} · ${seat.kind === "extra" ? "Extra legroom" : seat.kind} · ${money(seat.price)}${isOtherPassenger ? ` · Traveler ${Number(owner) + 1}` : ""}`} className={`seat ${seat.kind} ${seat.occupied ? "occupied" : ""} ${owner !== undefined ? "chosen" : ""} ${isActive ? "active-seat" : ""} ${isOtherPassenger ? "other-seat" : ""}`} style={{ gridColumn: seat.column + 1 }} onClick={() => chooseSeat(seat)} disabled={seat.occupied} aria-pressed={owner !== undefined}>{seat.occupied ? <X size={15} /> : owner !== undefined ? <Check size={16} /> : <Armchair size={17} />}<span className="seat-tooltip">{seat.id} · {money(seat.price)}</span></button>;
+            })}</div>; })}</div><div className="plane-tail"><span>REAR OF AIRCRAFT</span><div className="tail-line" /></div></div></div>
             {message && <div className="inline-message" role="status">{message}</div>}
-          </div><div className="panel-foot"><span>{selected ? <button className="clear-seat" onClick={() => { remove(); setMessage(`Seat ${selected} cleared for Passenger ${active + 1}.`); }}>Clear this seat</button> : "Seat selection is optional"}</span><button onClick={() => { setActive((active + 1) % count); setMessage(""); }}>Next passenger <ArrowLeft className="next-arrow" size={15} /></button></div>
+            <div className="pricing-note"><CircleHelp size={17} /><span><strong>Why are some seats included?</strong> Standard seats are included in your ticket. Extra legroom and premium seats have an added fee shown on the seat.</span></div>
+          </div><div className="panel-foot"><span>Click an available seat to assign it to Traveler {active + 1}.</span>{activeSeat && <button className="clear-seat" onClick={() => { removeSeat(); setMessage(`Seat ${activeSeat.id} removed from Traveler ${active + 1}.`); }}>Remove seat <X size={15} /></button>}</div>
         </section>
-        <aside className="summary-column"><section className="panel passengers"><div className="panel-heading"><div><h2>Travelers</h2><p>Assign a seat to each passenger</p></div><label className="count-select"><select value={count} onChange={(e) => setCount(Number(e.target.value))} aria-label="Number of passengers">{[1, 2, 3, 4, 5, 6].map((n) => <option key={n} value={n}>{n} {n === 1 ? "traveler" : "travelers"}</option>)}</select><ChevronDown size={14} /></label></div><div className="passenger-list">{passengers.map((person) => <button className={`passenger-row ${active === person.id ? "passenger-active" : ""}`} key={person.id} onClick={() => { setActive(person.id); setMessage(""); }} aria-pressed={active === person.id}><span className="passenger-avatar">{person.name.split(" ")[1]}</span><span className="passenger-info"><strong>{person.name}</strong><small>{assignments[person.id] ? `Seat ${assignments[person.id]}` : "Seat not selected"}</small></span><span className="passenger-price">{assignments[person.id] ? money(seats.flat().find((s) => s.id === assignments[person.id])?.price ?? 0) : "—"}</span>{active === person.id && <span className="active-indicator" />}</button>)}</div></section>
-          <section className="panel cost-panel"><h2>Price summary</h2><div className="cost-line"><span>Seat selection <small>{Object.keys(assignments).length} of {count} selected</small></span><strong>{money(total)}</strong></div><div className="cost-divider"></div><div className="cost-total"><span>Total <small>All prices in INR</small></span><strong>{money(total)}</strong></div><button className="continue-button" onClick={() => { if (Object.keys(assignments).length < count) setMessage("Select a seat for each passenger to continue."); else setMessage("Seats confirmed for all passengers."); }}>Continue <ArrowLeft className="continue-arrow" size={16} /></button><p className="summary-note">You can review your seats before checkout.</p></section><div className="secure-note"><span>✓</span> Your seat selections are saved for this session</div></aside>
+        <aside className="summary-column"><section className="panel meal-panel"><div className="panel-heading compact"><div><span className="eyebrow">EXTRA COMFORT</span><h2><Utensils size={19} /> Choose a meal</h2><p>Optional · select for Traveler {active + 1}</p></div></div><div className="meal-options">{mealOptions.map((meal) => <button key={meal.id} className={`meal-option ${activeMeal === meal.id ? "meal-selected" : ""}`} onClick={() => setMeal(meal.id)} aria-pressed={activeMeal === meal.id}><span className="meal-radio">{activeMeal === meal.id && <span />}</span><span className="meal-copy"><strong>{meal.name}</strong><small>{meal.detail}</small></span><span className="meal-price">{money(meal.price)}</span></button>)}</div></section>
+          <section className="panel cost-panel"><div className="summary-title"><div><span className="eyebrow">YOUR SELECTION</span><h2>Price summary</h2></div><span className="currency-pill">INR</span></div><div className="summary-passengers">{passengers.map((id) => <div className="summary-person" key={id}><span className="summary-person-name">Traveler {id + 1}<small>{assignments[id] ? `Seat ${assignments[id]}` : "Seat not selected"}{meals[id] && meals[id] !== "none" ? ` · ${mealOptions.find((meal) => meal.id === meals[id])?.name}` : ""}</small></span><strong>{money((seatById.get(assignments[id] ?? "")?.price ?? 0) + (mealOptions.find((meal) => meal.id === meals[id])?.price ?? 0))}</strong></div>)}</div><div className="cost-divider" /><div className="cost-line"><span>Seat selection</span><strong>{money(seatTotal)}</strong></div><div className="cost-line"><span>Meals</span><strong>{money(mealTotal)}</strong></div><div className="cost-divider" /><div className="cost-total"><span>Total <small>{selectedCount} of {count} seats selected</small></span><strong>{money(total)}</strong></div><button className="continue-button" onClick={() => setMessage(selectedCount < count ? `Choose seats for ${count - selectedCount} more traveler${count - selectedCount === 1 ? "" : "s"} to continue.` : "All seats are selected. Your choices are ready for review.")}>Continue to review <ArrowRight size={18} /></button><p className="summary-note">You can change your selections before checkout.</p></section><div className="secure-note"><Check size={16} /> Your selections are saved for this session</div></aside>
       </div><footer className="page-footer">© 2024 Wayfare Airways <span>·</span> Seat selection</footer>
     </main>
   </div>;
