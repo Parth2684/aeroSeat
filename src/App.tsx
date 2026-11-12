@@ -1,6 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { create } from "zustand";
-import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
 import {
   Armchair,
   ArrowRight,
@@ -233,13 +232,7 @@ function createSeats(layout: Layout): Seat[] {
 }
 
 export function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="*" element={<BookingPage />} />
-      </Routes>
-    </BrowserRouter>
-  );
+  return <BookingPage />;
 }
 
 function BookingPage() {
@@ -315,14 +308,14 @@ function BookingPage() {
   return (
     <div className={`app-shell ${dark ? "theme-dark" : ""}`}>
       <header className="topbar">
-        <Link to="/" className="brand">
+        <a href="/" className="brand">
           <span className="brand-mark">
             <Plane size={19} />
           </span>
           <span>
             wayfare<span className="brand-dot">.</span>
           </span>
-        </Link>
+        </a>
         <div className="topbar-right">
           <span className="support-link">
             <CircleHelp size={17} /> Help center
