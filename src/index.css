@@ -58,14 +58,14 @@ a:focus-visible {
 }
 .app-shell.theme-dark {
   color-scheme: dark;
-  --page: #101a1c;
-  --surface: #182426;
-  --surface-raised: #1c292b;
-  --ink: #e6efed;
-  --muted: #a1b0ae;
-  --soft: #839390;
-  --border: #304141;
-  --border-soft: #283838;
+  --page: #000;
+  --surface: #0a0a0a;
+  --surface-raised: #111;
+  --ink: #f0f0f0;
+  --muted: #a3a3a3;
+  --soft: #777;
+  --border: #2a2a2a;
+  --border-soft: #1d1d1d;
   --accent: #83c7b5;
   --accent-strong: #9bdbc9;
   --accent-pale: #203c38;
@@ -1231,6 +1231,12 @@ a:focus-visible {
   .styled-select-menu {
     min-width: min(220px, calc(100vw - 48px));
   }
+  .layout-select .styled-select-menu {
+    left: auto;
+    right: 0;
+    width: min(220px, calc(100vw - 52px));
+    min-width: 0;
+  }
   .seat-panel .panel-heading {
     align-items: flex-start;
     padding: 17px 16px;
@@ -1257,7 +1263,16 @@ a:focus-visible {
     padding: 14px 9px 12px;
   }
   .plane-map.layout-2-3-2 {
-    min-width: 460px;
+    min-width: 0;
+    width: 100%;
+  }
+  .plane-map.layout-2-3-2 .column-labels,
+  .plane-map.layout-2-3-2 .seat-row {
+    grid-template-columns: 24px repeat(2, minmax(0, 1fr)) 8px repeat(3, minmax(0, 1fr)) 8px repeat(2, minmax(0, 1fr)) !important;
+    gap: 3px;
+  }
+  .plane-map.layout-2-3-2 .row-num {
+    width: auto;
   }
   .seat-row {
     min-height: 38px;
