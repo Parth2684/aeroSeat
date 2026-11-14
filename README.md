@@ -2,6 +2,9 @@
 
 A responsive flight seat and passenger management interface built with React and Bun. Travelers can select passengers, choose seats from an interactive cabin map, add optional meals, and review an itemized total before continuing.
 
+## Live Demo
+[aeroSeat-1.5x.webm](https://github.com/user-attachments/assets/d2f8c6a5-6d8b-46b8-ab2b-0fc93d784796)
+
 ## Features
 
 - Interactive seat maps for 3–2 and 2–3–2 cabin layouts, with row numbers, seat letters, and aisle gaps
